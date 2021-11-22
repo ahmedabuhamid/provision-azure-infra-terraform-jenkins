@@ -1,0 +1,6 @@
+client_id           = ""
+client_secret       = ""
+subscription_id     = ""
+tenant_id           = ""
+kubernetes_cluster_ssh_pub = "PLBLIC KEY DATA WITHOUT ANY WHITE SPACES"
+linux_vms_ssh_key   = "PASS TO THE PUBLIC KEY"

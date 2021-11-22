@@ -1,0 +1,57 @@
+pipeline{
+    agent any 
+    tools {
+         "org.jenkinsci.plugins.terraform.TerraformInstallation" "terraform"
+     }
+    environment{
+        TF_HOME = tool('terraform')
+        TF_IN_AUTOMATION = "true"
+        PATH = "$TF_HOME:$PATH"
+    }
+    stages{
+        stage ('terraform init'){
+            steps{
+                ansiColor('xterm') {
+                    withCredentials([azureServicePrincipal(
+                        clientIdVariable: 'CLIENT_ID', 
+                        clientSecretVariable: 'CLIENT_SECRET', 
+                        credentialsId: 'azurw_sp', 
+                        subscriptionIdVariable: 'SUBSCRIPTION_ID', 
+                        tenantIdVariable: 'TENANT_ID')
+                    ,string(credentialsId: 'storage-terraformstatspring', variable: 'STORAGE_ACCESS_KEY')]) {
+                        sh """
+                        echo "Initialising Terraform"
+                        terraform init -backend-config="access_key=$STORAGE_ACCESS_KEY"
+                        """
+                    }
+                }
+            }
+        }
+        stage('Terraform Apply'){
+            steps{
+                ansiColor('xterm') {
+                    withCredentials([azureServicePrincipal(
+                        clientIdVariable: 'CLIENT_ID', 
+                        clientSecretVariable: 'CLIENT_SECRET', 
+                        credentialsId: 'azurw_sp', 
+                        subscriptionIdVariable: 'SUBSCRIPTION_ID', 
+                        tenantIdVariable: 'TENANT_ID')
+                    ,string(credentialsId: 'storage-terraformstatspring', variable: 'STORAGE_ACCESS_KEY')
+                    ,file(credentialsId: 'public-ssh-k', variable: 'LINNX_SSH_KEY')
+                    ,string(credentialsId: 'ssh-pub-data', variable: 'CLUSTER_SSH_KEY')]) {
+                        sh """    
+                        echo "Terraform APPLY"
+                        terraform apply -auto-approve -var 'client_id=$CLIENT_ID' \
+                        -var 'client_secret=$CLIENT_SECRET' \
+                        -var 'subscription_id=$SUBSCRIPTION_ID' \
+                        -var 'tenant_id=$TENANT_ID' \
+                        -var 'linux_vms_ssh_key=$LINNX_SSH_KEY' \
+                        -var 'kubernetes_cluster_ssh_pub=$CLUSTER_SSH_KEY'
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+}
