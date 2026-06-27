@@ -1,3 +1,4 @@
+```plantuml
 @startuml AgentAssist_Platform_Architecture
 !theme cerulean-outline
 skinparam backgroundColor #FAFAFA
@@ -107,3 +108,4 @@ legend right
 end legend
 
 @enduml
+```
